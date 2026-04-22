@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RealTimeLocationPOC.Api/RealTimeLocationPOC.Api.csproj" />
+  <Project Path="RealTimeLocationPOC.Web/RealTimeLocationPOC.Web.csproj" />
+</Solution>

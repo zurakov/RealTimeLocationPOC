@@ -1,0 +1,53 @@
+@page "/"
+
+<PageTitle>Real-Time Location Tracker</PageTitle>
+
+<div class="home-page">
+    <div class="hero">
+        <div class="hero-content">
+            <h1>📡 Real-Time Location Tracker</h1>
+            <p class="subtitle">Track your employees' locations in real-time on an interactive map</p>
+        </div>
+    </div>
+
+    <div class="cards-section">
+        <div class="nav-card">
+            <div class="card-icon">🗺️</div>
+            <h3>Owner Dashboard</h3>
+            <p>View all employees on a live map with real-time updates via SSE</p>
+            <a href="/owner/a1b2c3d4-e5f6-7890-abcd-ef1234567890" class="card-link">Open Dashboard →</a>
+        </div>
+
+        <div class="nav-card">
+            <div class="card-icon">👤</div>
+            <h3>Employee: Ahmad</h3>
+            <p>Simulate Ahmad Al-Farsi sending GPS pings</p>
+            <a href="/employee/11111111-1111-1111-1111-111111111111" class="card-link">Open Sender →</a>
+        </div>
+
+        <div class="nav-card">
+            <div class="card-icon">👤</div>
+            <h3>Employee: Sara</h3>
+            <p>Simulate Sara Johnson sending GPS pings</p>
+            <a href="/employee/22222222-2222-2222-2222-222222222222" class="card-link">Open Sender →</a>
+        </div>
+
+        <div class="nav-card">
+            <div class="card-icon">👤</div>
+            <h3>Employee: Dmitry</h3>
+            <p>Simulate Dmitry Volkov sending GPS pings</p>
+            <a href="/employee/33333333-3333-3333-3333-333333333333" class="card-link">Open Sender →</a>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h2>How to Test</h2>
+        <ol>
+            <li>Open the <strong>Owner Dashboard</strong> in one browser tab</li>
+            <li>Open one or more <strong>Employee Sender</strong> pages in separate tabs</li>
+            <li>Click <strong>Start Sending</strong> on each employee page</li>
+            <li>Watch the markers appear and update in real-time on the dashboard map</li>
+            <li>Click <strong>Stop Sending</strong> to mark an employee as offline</li>
+        </ol>
+    </div>
+</div>

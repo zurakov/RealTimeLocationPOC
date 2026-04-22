@@ -1,0 +1,178 @@
+@page "/employee/{EmployeeId:guid}"
+@using RealTimeLocationPOC.Web.Models
+@using System.Text.Json
+@implements IAsyncDisposable
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Employee Tracking</PageTitle>
+
+<div class="employee-container">
+    <div class="card shadow-lg p-6 max-w-md mx-auto mt-10">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">📍 Real-Time Tracking</h1>
+        
+        <div class="status-badge flex items-center gap-2 mb-6">
+            <span class="pulse @(isOnline ? "online" : "offline")"></span>
+            <span class="font-semibold @(isOnline ? "text-green-600" : "text-gray-500")">
+                @(isOnline ? "Tracking Active" : "Offline")
+            </span>
+        </div>
+
+        <div class="info-grid grid gap-4 mb-6">
+            <div class="p-3 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-500 uppercase">Latitude</p>
+                <p class="font-mono text-lg">@(currentLocation?.Latitude.ToString("F6") ?? "---")</p>
+            </div>
+            <div class="p-3 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-500 uppercase">Longitude</p>
+                <p class="font-mono text-lg">@(currentLocation?.Longitude.ToString("F6") ?? "---")</p>
+            </div>
+        </div>
+
+        <button @onclick="ToggleTracking" 
+                class="w-full py-3 rounded-xl font-bold transition-all shadow-md @(isOnline ? "bg-red-500 hover:bg-red-600 text-white" : "bg-indigo-600 hover:bg-indigo-700 text-white")">
+            @(isOnline ? "Stop Tracking" : "Start Tracking")
+        </button>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p class="mt-4 text-red-500 text-sm">⚠️ @errorMessage</p>
+        }
+    </div>
+</div>
+
+<style>
+    .employee-container {
+        font-family: 'Outfit', sans-serif;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        min-height: 90vh;
+        padding: 2rem;
+    }
+    .card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 1.5rem;
+    }
+    .pulse {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .online {
+        background: #10b981;
+        box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+        animation: pulse-green 2s infinite;
+    }
+    .offline {
+        background: #9ca3af;
+    }
+    @@keyframes pulse-green {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+</style>
+
+@code {
+    [Parameter] public Guid EmployeeId { get; set; }
+    private bool isOnline = false;
+    private LocationPing? currentLocation;
+    private string? errorMessage;
+    private PeriodicTimer? timer;
+    private CancellationTokenSource? cts;
+
+    private async Task ToggleTracking()
+    {
+        if (isOnline)
+        {
+            await StopTracking();
+        }
+        else
+        {
+            await StartTracking();
+        }
+    }
+
+    private async Task StartTracking()
+    {
+        isOnline = true;
+        errorMessage = null;
+        cts = new CancellationTokenSource();
+        timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                while (await timer.WaitForNextTickAsync(cts.Token))
+                {
+                    await PushLocation();
+                }
+            }
+            catch (OperationCanceledException) { }
+        });
+
+        await PushLocation(); // Immediate first ping
+    }
+
+    private async Task StopTracking()
+    {
+        isOnline = false;
+        cts?.Cancel();
+        timer?.Dispose();
+        
+        try
+        {
+            var apiUrl = "http://localhost:5202/api/locationpings/offline/" + EmployeeId;
+            await Http.PostAsync(apiUrl, null);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to mark offline: " + ex.Message;
+        }
+    }
+
+    private async Task PushLocation()
+    {
+        try
+        {
+            var pos = await JS.InvokeAsync<GeoPosition>("locationInterop.getPosition");
+            currentLocation = new LocationPing
+            {
+                EmployeeId = EmployeeId,
+                Latitude = pos.Latitude,
+                Longitude = pos.Longitude,
+                Heading = pos.Heading,
+                RecordedAt = DateTimeOffset.UtcNow
+            };
+
+            var apiUrl = "http://localhost:5202/api/locationpings";
+            await Http.PostAsJsonAsync(apiUrl, currentLocation);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "GPS Error: " + ex.Message;
+            await StopTracking();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (isOnline)
+        {
+            await StopTracking();
+        }
+        cts?.Dispose();
+    }
+
+    public class GeoPosition
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public float? Heading { get; set; }
+    }
+}
