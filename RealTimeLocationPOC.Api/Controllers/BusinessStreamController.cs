@@ -1,6 +1,4 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using RealTimeLocationPOC.Api.Models;
 using RealTimeLocationPOC.Api.Services.Foundations.SseChannels;
 using RealTimeLocationPOC.Api.Services.Orchestrations;
 
@@ -25,7 +23,9 @@ namespace RealTimeLocationPOC.Api.Controllers
         public async Task StreamAsync(Guid businessId, CancellationToken cancellationToken)
         {
             await this.locationOrchestrationService.StreamLocationUpdatesAsync(
-                businessId, Response, cancellationToken);
+                businessId,
+                Response,
+                cancellationToken);
         }
     }
 }
