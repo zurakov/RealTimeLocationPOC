@@ -25,10 +25,12 @@ namespace RealTimeLocationPOC.Api.Controllers
         }
 
         [HttpPost("offline/{employeeId}")]
-        public async ValueTask<ActionResult> PostEmployeeOfflineAsync(Guid employeeId)
+        public async ValueTask<ActionResult> PostEmployeeOfflineAsync(
+            Guid employeeId)
         {
-            await this.locationOrchestrationService.MarkEmployeeOfflineAsync(
-                employeeId);
+            await this.locationOrchestrationService
+                .MarkEmployeeOfflineAsync(
+                    employeeId);
 
             return Ok();
         }
