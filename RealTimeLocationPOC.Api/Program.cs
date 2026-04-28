@@ -31,7 +31,7 @@ var app = builder.Build();
 app.UseCors(policyName: "AllowAll");
 app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
+using (IServiceScope scope = app.Services.CreateScope())
 {
     var storageBroker = scope.ServiceProvider.GetRequiredService<IStorageBroker>();
 }
