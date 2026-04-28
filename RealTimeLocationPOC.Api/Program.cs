@@ -28,7 +28,7 @@ builder.Services.AddTransient<ILocationPingService, LocationPingService>();
 builder.Services.AddTransient<ILocationOrchestrationService, LocationOrchestrationService>();
 builder.Services.AddSingleton<SseChannelService>();
 var app = builder.Build();
-app.UseCors("AllowAll");
+app.UseCors(policyName: "AllowAll");
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
