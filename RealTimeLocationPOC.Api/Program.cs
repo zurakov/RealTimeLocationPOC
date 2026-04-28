@@ -12,7 +12,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy(name: "AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
