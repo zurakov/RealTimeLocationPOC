@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using Microsoft.EntityFrameworkCore;
 using RealTimeLocationPOC.Api.Brokers.DateTimes;
 using RealTimeLocationPOC.Api.Brokers.Loggings;
@@ -130,14 +130,12 @@ namespace RealTimeLocationPOC.Api.Services.Orchestrations
 
         public async Task StreamLocationUpdatesAsync(
             Guid businessId,
-            Microsoft.AspNetCore.Http.HttpResponse response,
+            HttpResponse response,
             CancellationToken cancellationToken)
         {
             response.ContentType = "text/event-stream";
             response.Headers.Append("Cache-Control", "no-cache");
             response.Headers.Append("Connection", "keep-alive");
-
-            // 1. Send initial snapshot
             List<EmployeeLocation> snapshot = await this.RetrieveBusinessSnapshotAsync(businessId);
             foreach (var location in snapshot)
             {
@@ -145,9 +143,7 @@ namespace RealTimeLocationPOC.Api.Services.Orchestrations
                 await response.WriteAsync($"data: {snapshotJson}\n\n", cancellationToken);
             }
             await response.Body.FlushAsync(cancellationToken);
-
-            // 2. Stream live updates
-            var reader = this.sseChannelService.GetReader(businessId);
+            ChannelReader<EmployeeLocation> reader = this.sseChannelService.GetReader(businessId);
 
             while (!cancellationToken.IsCancellationRequested)
             {
