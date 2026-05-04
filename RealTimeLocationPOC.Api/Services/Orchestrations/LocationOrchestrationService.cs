@@ -151,7 +151,6 @@ namespace RealTimeLocationPOC.Api.Services.Orchestrations
                 {
                     EmployeeLocation location = await reader.ReadAsync(cancellationToken);
                     string locationJson = System.Text.Json.JsonSerializer.Serialize(location);
-
                     await response.WriteAsync($"data: {locationJson}\n\n", cancellationToken);
                     await response.Body.FlushAsync(cancellationToken);
                 }
